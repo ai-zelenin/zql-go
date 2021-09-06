@@ -1,4 +1,4 @@
-package dao
+package zql
 
 type Query struct {
 	Filter    []*Predicate `json:"filter" yaml:"filter"`

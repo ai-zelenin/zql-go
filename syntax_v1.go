@@ -1,4 +1,4 @@
-package dao
+package zql
 
 type SyntaxV1 struct {
 	qb *QueryBuilder

@@ -1,4 +1,4 @@
-package dao
+package zql
 
 type Direction string
 

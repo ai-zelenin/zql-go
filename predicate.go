@@ -1,4 +1,9 @@
-package dao
+package zql
+
+import (
+	"encoding/json"
+	"github.com/tidwall/gjson"
+)
 
 const (
 	AND   = "and"
@@ -15,9 +20,43 @@ const (
 )
 
 type Predicate struct {
-	Field string
-	Op    string
-	Value interface{}
+	Field string      `json:"field" yaml:"field"`
+	Op    string      `json:"op" yaml:"op"`
+	Value interface{} `json:"value" yaml:"value"`
+}
+
+func (p *Predicate) UnmarshalJSON(bytes []byte) error {
+	p.Op = gjson.GetBytes(bytes, "op").String()
+	if p.Op == AND || p.Op == OR {
+		type groupPredicate struct {
+			Field string       `json:"field" yaml:"field"`
+			Op    string       `json:"op" yaml:"op"`
+			Value []*Predicate `json:"value" yaml:"value"`
+		}
+		pr := new(groupPredicate)
+		err := json.Unmarshal(bytes, pr)
+		if err != nil {
+			return err
+		}
+		p.Field = pr.Field
+		p.Op = pr.Op
+		p.Value = pr.Value
+	} else {
+		type simplePredicate struct {
+			Field string      `json:"field" yaml:"field"`
+			Op    string      `json:"op" yaml:"op"`
+			Value interface{} `json:"value" yaml:"value"`
+		}
+		pr := new(simplePredicate)
+		err := json.Unmarshal(bytes, pr)
+		if err != nil {
+			return err
+		}
+		p.Field = pr.Field
+		p.Op = pr.Op
+		p.Value = pr.Value
+	}
+	return nil
 }
 
 func NewPredicate(op string, field string, value interface{}) *Predicate {
