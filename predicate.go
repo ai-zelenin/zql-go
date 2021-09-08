@@ -25,6 +25,51 @@ type Predicate struct {
 	Value interface{} `json:"value" yaml:"value"`
 }
 
+func (p *Predicate) IsGroup() bool {
+	return p.Op == AND || p.Op == OR
+}
+
+func (p *Predicate) Append(n Node) {
+	if p.IsGroup() {
+		predicates, ok := p.Value.([]*Predicate)
+		if ok {
+			predicate, ok := n.(*Predicate)
+			if ok {
+				p.Value = append(predicates, predicate)
+			}
+		}
+	}
+}
+
+func (p *Predicate) ChildList() []Node {
+	var list []Node
+	if p.IsGroup() {
+		predicates, ok := p.Value.([]*Predicate)
+		if ok {
+			list = make([]Node, len(predicates))
+			for i, predicate := range predicates {
+				list[i] = predicate
+			}
+		}
+	}
+	return nil
+}
+
+func (p *Predicate) Walk(cb WalkFunc, parent Node, lvl int) (Node, error) {
+	newNode, err := cb(parent, p, lvl)
+	if err != nil {
+		return nil, err
+	}
+	for _, node := range p.ChildList() {
+		childNode, err := node.Walk(cb, p, lvl+1)
+		if err != nil {
+			return nil, err
+		}
+		newNode.Append(childNode)
+	}
+	return newNode, nil
+}
+
 func (p *Predicate) UnmarshalJSON(bytes []byte) error {
 	p.Op = gjson.GetBytes(bytes, "op").String()
 	if p.Op == AND || p.Op == OR {
