@@ -33,8 +33,8 @@ func (qb *QueryBuilder) Order(order ...*Order) *QueryBuilder {
 	return qb
 }
 
-func (qb *QueryBuilder) Distinct(field string) {
-	qb.query.Distinct = field
+func (qb *QueryBuilder) Uniq(field string) {
+	qb.query.Uniq = field
 }
 
 func (qb *QueryBuilder) Build() *Query {

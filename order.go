@@ -8,8 +8,8 @@ const (
 )
 
 type Order struct {
-	Field     string
-	Direction Direction
+	Field     string    `json:"field" yaml:"field"`
+	Direction Direction `json:"direction" yaml:"direction"`
 }
 
 func NewOrder(field string, dir Direction) *Order {

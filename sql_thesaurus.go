@@ -65,9 +65,16 @@ func (s *SQLThesaurus) QueryToSQL(q *Query) (string, []interface{}, error) {
 	if len(predicates) == 0 {
 		return "", nil, nil
 	}
-	dialect := goqu.Dialect(s.dialect)
-	query := dialect.Select("*")
+	fields := make([]interface{}, len(q.Fields))
+	for i, f := range q.Fields {
+		fields[i] = f
+	}
+	if len(fields) == 0 {
+		fields = []interface{}{"*"}
+	}
 
+	dialect := goqu.Dialect(s.dialect)
+	query := dialect.Select(fields...).From(q.Model)
 	root := goqu.And()
 	for _, predicate := range predicates {
 		expr, err := s.PredicateToExpression(predicate)
@@ -78,8 +85,8 @@ func (s *SQLThesaurus) QueryToSQL(q *Query) (string, []interface{}, error) {
 	}
 	query = query.Where(root)
 
-	if q.Distinct != "" {
-		query = query.Distinct(q.Distinct)
+	if q.Uniq != "" {
+		query = query.Distinct(q.Uniq)
 	}
 	for _, order := range q.Orders {
 		var dir exp.SortDirection
