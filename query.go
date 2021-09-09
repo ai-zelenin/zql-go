@@ -1,14 +1,14 @@
 package zql
 
 type Query struct {
-	Model     string       `json:"model" yaml:"model"`
-	Fields    []string     `json:"fields" yaml:"fields"`
-	Uniq      string       `json:"uniq" yaml:"uniq"`
-	Relations []string     `json:"relations" yaml:"relations"`
-	Filter    []*Predicate `json:"filter" yaml:"filter"`
-	Orders    []*Order     `json:"orders" yaml:"orders"`
-	Page      int64        `json:"page" yaml:"page"`
-	PerPage   int64        `json:"per_page" yaml:"per_page"`
+	Model     string       `json:"model,omitempty" yaml:"model"`
+	Fields    []string     `json:"fields,omitempty" yaml:"fields"`
+	Uniq      string       `json:"uniq,omitempty" yaml:"uniq"`
+	Relations []string     `json:"relations,omitempty" yaml:"relations"`
+	Filter    []*Predicate `json:"filter,omitempty" yaml:"filter"`
+	Orders    []*Order     `json:"orders,omitempty" yaml:"orders"`
+	Page      int64        `json:"page,omitempty" yaml:"page"`
+	PerPage   int64        `json:"per_page,omitempty" yaml:"per_page"`
 }
 
 func NewQuery() *Query {
