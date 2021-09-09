@@ -20,9 +20,9 @@ const (
 )
 
 type Predicate struct {
-	Field string      `json:"field" yaml:"field"`
-	Op    string      `json:"op" yaml:"op"`
-	Value interface{} `json:"value" yaml:"value"`
+	Field string      `json:"field,omitempty" yaml:"field"`
+	Op    string      `json:"op,omitempty" yaml:"op"`
+	Value interface{} `json:"value,omitempty" yaml:"value"`
 }
 
 func (p *Predicate) IsGroup() bool {
