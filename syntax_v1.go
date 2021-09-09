@@ -1,5 +1,7 @@
 package zql
 
+import "time"
+
 type SyntaxV1 struct {
 	qb *QueryBuilder
 }
@@ -30,11 +32,17 @@ func (s *SyntaxV1) JoinOr(p1, p2 *Predicate) *Predicate {
 
 func (s *SyntaxV1) Env() map[string]interface{} {
 	return map[string]interface{}{
-		"qb":              s.qb,
-		"asc":             Asc,
-		"desc":            Desc,
-		"AND":             And,
-		"OR":              Or,
+		"qb":   s.qb,
+		"asc":  Asc,
+		"desc": Desc,
+		"AND":  And,
+		"OR":   Or,
+		"now": func() string {
+			return time.Now().Format(time.RFC3339Nano)
+		},
+		"like":  Like,
+		"ilike": ILike,
+
 		"EqOperator":      NewOperator("==", Eq),
 		"NeqOperator":     NewOperator("!=", Neq),
 		"GtOperator":      NewOperator(">", Gt),

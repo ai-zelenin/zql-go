@@ -5,8 +5,6 @@ import (
 	"reflect"
 )
 
-type ValidatorOption func(i interface{}) error
-
 type Validator interface {
 	Validate(q *Query) error
 }
@@ -24,15 +22,34 @@ func (e *ExtendableValidator) Validate(q *Query) error {
 	if err != nil {
 		return err
 	}
+	for _, validator := range e.cfg.Validators {
+		err = validator.Validate(q)
+		if err != nil {
+			return err
+		}
+	}
 	return nil
 }
 
 func (e *ExtendableValidator) validateFilter(q *Query) error {
+	counter := 0
 	for _, predicate := range q.Filter {
-		err := e.validatePredicate(predicate)
+		counter++
+		_, err := predicate.Walk(func(parent Node, current Node, lvl int) (Node, error) {
+			counter++
+			currentPr := current.(*Predicate)
+			err := e.validatePredicate(currentPr)
+			if err != nil {
+				return nil, err
+			}
+			return nil, nil
+		}, nil, 0)
 		if err != nil {
 			return err
 		}
+	}
+	if counter > e.cfg.MaxPredicateNumber {
+		return NewError(fmt.Errorf("to many prediactes in filter"), ErrCodeTooManyPredicatesInFilter)
 	}
 	return nil
 }
@@ -41,29 +58,15 @@ func (e *ExtendableValidator) validatePredicate(p *Predicate) error {
 	field := p.Field
 	op := p.Op
 	value := p.Value
+	rv := reflect.ValueOf(value)
 	rt := reflect.TypeOf(value)
-	valueType := TypeToString(rt)
-
-	if e.cfg.CheckAcceptableFields {
-		_, isFieldAcceptable := e.cfg.AcceptableFields[field]
-		if !isFieldAcceptable {
-			return NewError(fmt.Errorf("field %s is unacceptable", field), ErrCodeFieldUnacceptable)
+	for _, validator := range e.cfg.PredicateValidators {
+		if validator != nil {
+			err := validator.Validate(field, op, value, rt, rv)
+			if err != nil {
+				return err
+			}
 		}
 	}
-
-	if e.cfg.CheckFieldValueTypeMap {
-		isValueTypeGoodForField := e.cfg.FieldValueTypeMap[field] == valueType
-		if !isValueTypeGoodForField {
-			return NewError(fmt.Errorf("value type %v  unacceptable for field %s", valueType, field), ErrCodeValueTypeUnacceptableForField)
-		}
-	}
-
-	if e.cfg.CheckOpValueTypeMap {
-		isValueTypeGoodForOp := e.cfg.OpValueTypeMap[op] == valueType
-		if !isValueTypeGoodForOp {
-			return NewError(fmt.Errorf("value type %s unacceptable for op %s", valueType, op), ErrCodeValueTypeUnacceptableForOp)
-		}
-	}
-
 	return nil
 }

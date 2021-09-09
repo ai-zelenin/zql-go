@@ -60,7 +60,7 @@ func (s *SQLThesaurus) SetOpFunc(key string, f OpToSQLFunc) {
 	s.opFunctionMap[key] = f
 }
 
-func (s *SQLThesaurus) QueryToSQL(q *Query) (string, []interface{}, error) {
+func (s *SQLThesaurus) QueryToSQL(q *Query, prepared bool) (string, []interface{}, error) {
 	predicates := q.Filter
 	if len(predicates) == 0 {
 		return "", nil, nil
@@ -73,8 +73,13 @@ func (s *SQLThesaurus) QueryToSQL(q *Query) (string, []interface{}, error) {
 		fields = []interface{}{"*"}
 	}
 
+	model := "*"
+	if q.Model != "" {
+		model = q.Model
+	}
+
 	dialect := goqu.Dialect(s.dialect)
-	query := dialect.Select(fields...).From(q.Model)
+	query := dialect.Select(fields...).From(model)
 	root := goqu.And()
 	for _, predicate := range predicates {
 		expr, err := s.PredicateToExpression(predicate)
@@ -106,25 +111,32 @@ func (s *SQLThesaurus) QueryToSQL(q *Query) (string, []interface{}, error) {
 	l, o := q.LimitOffset()
 	query = query.Limit(uint(l))
 	query = query.Offset(uint(o))
-	return query.Prepared(true).ToSQL()
+	return query.Prepared(prepared).ToSQL()
 }
 
-func (s *SQLThesaurus) FilterToSQL(predicates []*Predicate) (string, []interface{}, error) {
+func (s *SQLThesaurus) FilterToExpr(predicates []*Predicate) (goqu.Expression, error) {
 	if len(predicates) == 0 {
-		return "", nil, nil
+		return nil, nil
 	}
-	dialect := goqu.Dialect(s.dialect)
 	root := goqu.And()
 	for _, predicate := range predicates {
 		expr, err := s.PredicateToExpression(predicate)
 		if err != nil {
-			return "", nil, err
+			return nil, err
 		}
 		root = root.Append(expr)
 	}
+	return root, nil
+}
+
+func (s *SQLThesaurus) ExprToWherePart(ex goqu.Expression, prepared bool) (string, []interface{}, error) {
+	if ex == nil {
+		return "", nil, nil
+	}
+	dialect := goqu.Dialect(s.dialect)
 	query := dialect.Select("*")
-	query = query.Where(root)
-	sql, values, err := query.Prepared(true).ToSQL()
+	query = query.Where(ex)
+	sql, values, err := query.Prepared(prepared).ToSQL()
 	if err != nil {
 		return "", nil, err
 	}

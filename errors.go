@@ -4,9 +4,15 @@ import "fmt"
 
 type ErrCode int
 
-const ErrCodeFieldUnacceptable = 901
-const ErrCodeValueTypeUnacceptableForField = 902
-const ErrCodeValueTypeUnacceptableForOp = 903
+const (
+	ErrCodeFieldUnacceptable             = 901
+	ErrCodeValueTypeUnacceptableForField = 902
+	ErrCodeUnacceptableOp                = 903
+	ErrCodeValueTypeUnacceptableForOp    = 904
+	ErrCodeValueKindUnacceptableForOp    = 905
+	ErrCodeTooManyPredicatesInFilter     = 906
+	ErrCodeExceedMaxValueSize            = 907
+)
 
 type Error struct {
 	Origin error

@@ -1,12 +1,30 @@
 package zql
 
+const DefaultMaxPredicateNumber = 20
+
 type ValidatorConfig struct {
-	CheckAcceptableFields bool
-	AcceptableFields      map[string]bool
+	Validators          []Validator
+	PredicateValidators []ValidatorPredicate
+	MaxPredicateNumber  int
+}
 
-	CheckFieldValueTypeMap bool
-	FieldValueTypeMap      map[string]string
+func NewValidatorConfigForModel(model interface{}, tagName string) *ValidatorConfig {
+	fieldsValidator := NewValidatorPredicateFields()
+	valueValidator := NewValidatorPredicateValues()
+	opsValidator := NewValidatorPredicateOps()
 
-	CheckOpValueTypeMap bool
-	OpValueTypeMap      map[string]string
+	fields := fieldsFromModel(model, tagName)
+	for fieldName, valueType := range fields {
+		fieldsValidator.AddField(fieldName)
+		valueValidator.AddFieldValuePair(fieldName, valueType)
+	}
+
+	return &ValidatorConfig{
+		PredicateValidators: []ValidatorPredicate{
+			fieldsValidator,
+			valueValidator,
+			opsValidator,
+		},
+		MaxPredicateNumber: DefaultMaxPredicateNumber,
+	}
 }

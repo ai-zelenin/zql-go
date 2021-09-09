@@ -52,7 +52,7 @@ func (p *Predicate) ChildList() []Node {
 			}
 		}
 	}
-	return nil
+	return list
 }
 
 func (p *Predicate) Walk(cb WalkFunc, parent Node, lvl int) (Node, error) {
@@ -65,7 +65,9 @@ func (p *Predicate) Walk(cb WalkFunc, parent Node, lvl int) (Node, error) {
 		if err != nil {
 			return nil, err
 		}
-		newNode.Append(childNode)
+		if newNode != nil {
+			newNode.Append(childNode)
+		}
 	}
 	return newNode, nil
 }
