@@ -4,17 +4,21 @@ import (
 	"fmt"
 )
 
-func ExampleSQLThesaurus_FilterToSQL() {
+func ExampleSQLThesaurus_ExprToWherePart() {
 	code := `"age">=15 || ("age"<=17 && "name">"fuck" && "name"==nil)`
 	q, err := Run(code, NewSyntaxV1())
 	if err != nil {
 		panic(err)
 	}
 	sqlt := NewSQLThesaurus("postgres")
-	cond, args, err := sqlt.FilterToSQL(q.Filter)
+	ex, err := sqlt.FilterToExpression(q.Filter)
+	if err != nil {
+		panic(err)
+	}
+	wherePart, args, err := sqlt.ExprToWherePart(ex, false)
 	if err != nil {
 		panic(err)
 	}
 	fmt.Println(q)
-	fmt.Println(cond, args)
+	fmt.Println(wherePart, args)
 }
