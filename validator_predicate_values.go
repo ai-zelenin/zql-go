@@ -25,10 +25,9 @@ func (v *ValidatorPredicateValues) Validate(field, op string, value interface{},
 	if rt == nil {
 		return nil
 	}
-	valueType := nameFromValueType(rt)
-
+	valueType := ValueTypeToString(rt)
 	requiredValueType, ok := v.RequiredFieldValueTypeMap[field]
-	if ok && isCompareOp(op) {
+	if ok && IsCompareOp(op) {
 		isValueTypeGoodForField := requiredValueType == valueType
 		if !isValueTypeGoodForField {
 			return NewError(fmt.Errorf("value type %v unacceptable for field %s[%s]", valueType, field, requiredValueType), ErrCodeValueTypeUnacceptableForField)

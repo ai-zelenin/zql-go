@@ -3,14 +3,14 @@ package zql
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/doug-martin/goqu/v9"
+	"github.com/doug-martin/goqu/v9/exp"
+	"reflect"
 	"testing"
 	"time"
 )
 
 type Status int
-
-const StatusActive = 1
-const StatusInactive = 2
 
 type Human struct {
 	ID        int64     `json:"id"`
@@ -48,6 +48,10 @@ ilike("name","%lu%")
 		Code:      `("sex" == "InvalidCompareValueType" && "age" >= 18)`,
 		ErrorCode: ErrCodeValueTypeUnacceptableForField,
 	},
+	{
+		Code:      `qb.Filter(("sex" == true && "age" >= 18)).Order(asc("id"))`,
+		ErrorCode: 0,
+	},
 }
 
 func TestExtendableValidator_Validate(t *testing.T) {
@@ -73,9 +77,20 @@ func TestExtendableValidator_Validate(t *testing.T) {
 }
 
 func validate(q *Query) error {
-	var vCfg = NewValidatorConfigForModel(new(Human), "json")
-	var validator = NewExtendableValidator(vCfg)
+	var validator = NewExtendableValidator()
+	validator.SetupValidatorForModel(new(Human), "json")
 	sqlt := NewSQLThesaurus("postgres")
+	sqlt.SetOpFunc("between", func(t *SQLThesaurus, field string, value interface{}) (goqu.Expression, error) {
+		rv := reflect.ValueOf(value)
+		switch rv.Kind() {
+		case reflect.Slice, reflect.Array:
+			from := rv.Index(0).Interface()
+			to := rv.Index(1).Interface()
+			return goqu.I(field).Between(exp.NewRangeVal(from, to)), nil
+		default:
+			return nil, fmt.Errorf("bad value for op between")
+		}
+	})
 	err := validator.Validate(q)
 	if err != nil {
 		return err

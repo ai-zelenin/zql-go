@@ -1,5 +1,7 @@
 package zql
 
+import "encoding/json"
+
 type Query struct {
 	Model     string       `json:"model,omitempty" yaml:"model"`
 	Fields    []string     `json:"fields,omitempty" yaml:"fields"`
@@ -29,4 +31,12 @@ func (q *Query) LimitOffset() (limit int, offset int) {
 	limit = int(q.PerPage)
 	offset = int(q.PerPage * (q.Page - 1))
 	return
+}
+
+func (q *Query) String() string {
+	data, err := json.MarshalIndent(q, "", "  ")
+	if err != nil {
+		return err.Error()
+	}
+	return string(data)
 }

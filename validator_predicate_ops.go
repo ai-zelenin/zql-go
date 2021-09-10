@@ -56,7 +56,7 @@ func (e *ValidatorPredicateOps) Validate(field, op string, value interface{}, rt
 	if rt == nil {
 		return nil
 	}
-	valueType := nameFromValueType(rt)
+	valueType := ValueTypeToString(rt)
 	requiredValueType, ok := e.RequireOpValueTypeMap[op]
 	if ok {
 		isValueTypeGoodForOp := requiredValueType == valueType

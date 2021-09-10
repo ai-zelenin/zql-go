@@ -12,6 +12,7 @@ const (
 	ErrCodeValueKindUnacceptableForOp    = 905
 	ErrCodeTooManyPredicatesInFilter     = 906
 	ErrCodeExceedMaxValueSize            = 907
+	ErrCodeUnacceptableOrderDirection    = 904
 )
 
 type Error struct {

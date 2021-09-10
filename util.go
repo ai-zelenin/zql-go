@@ -15,12 +15,20 @@ const (
 
 var TimeReflectedType = reflect.TypeOf(time.Now())
 
-func isNil(c interface{}) bool {
+func IsNilValue(c interface{}) bool {
 	v := reflect.ValueOf(c)
 	return c == nil || (v.Kind() == reflect.Ptr && v.IsNil())
 }
 
-func fieldsFromModel(model interface{}, tagName string) map[string]string {
+func IsCompareOp(op string) bool {
+	switch op {
+	case EQ, NEQ, GT, GTE, LT, LTE:
+		return true
+	}
+	return false
+}
+
+func ReflectModelDescription(model interface{}, tagName string) map[string]string {
 	rv := reflect.ValueOf(model)
 	if rv.Kind() == reflect.Ptr {
 		rv = rv.Elem()
@@ -35,22 +43,24 @@ func fieldsFromModel(model interface{}, tagName string) map[string]string {
 		} else {
 			name = rf.Tag.Get(tagName)
 		}
-		result[name] = nameFromValueType(rf.Type)
+		result[name] = ValueTypeToString(rf.Type)
 	}
 	return result
 }
 
 func ReflectValueTypeName(i interface{}) string {
 	rt := reflect.TypeOf(i)
-	return nameFromValueType(rt)
+	return ValueTypeToString(rt)
 }
 
-func nameFromValueType(rt reflect.Type) string {
+func ValueTypeToString(rt reflect.Type) string {
 	switch rt.Kind() {
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
 		return ValueTypeNumber
 	case reflect.Float32, reflect.Float64:
 		return ValueTypeNumber
+	case reflect.Bool:
+		return ValueTypeBool
 	case reflect.String:
 		return ValueTypeString
 	}
@@ -58,12 +68,4 @@ func nameFromValueType(rt reflect.Type) string {
 		return ValueTypeString
 	}
 	return rt.String()
-}
-
-func isCompareOp(op string) bool {
-	switch op {
-	case EQ, NEQ, GT, GTE, LT, LTE:
-		return true
-	}
-	return false
 }
