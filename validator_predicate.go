@@ -13,6 +13,3 @@ type ValidatePredicateFunc func(field, op string, value interface{}, rt reflect.
 func (v ValidatePredicateFunc) Validate(field, op string, value interface{}, rt reflect.Type, rv reflect.Value) error {
 	return v(field, op, value, rt, rv)
 }
-
-type ExtendableValidatorPredicate struct {
-}

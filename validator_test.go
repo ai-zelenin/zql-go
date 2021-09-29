@@ -21,12 +21,12 @@ type Human struct {
 	BirthDate time.Time `json:"birth_date"`
 }
 
-type TestCase struct {
+type ValidatorTestCase struct {
 	Code      string
 	ErrorCode ErrCode
 }
 
-var TestTable = []TestCase{
+var ValidatorTestTable = []ValidatorTestCase{
 	{
 		Code: `
 ("sex" == true && "age" >= 18) ||
@@ -55,7 +55,7 @@ ilike("name","%lu%")
 }
 
 func TestExtendableValidator_Validate(t *testing.T) {
-	for _, testCase := range TestTable {
+	for _, testCase := range ValidatorTestTable {
 		q, err := Run(testCase.Code, NewSyntaxV1())
 		if err != nil {
 			panic(err)

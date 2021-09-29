@@ -30,7 +30,7 @@ func NewValidatorPredicateOps(unacceptableOps ...string) *ValidatorPredicateOps 
 	}
 }
 
-func (e *ValidatorPredicateOps) AddOp(op string) {
+func (e *ValidatorPredicateOps) AddUnacceptableOp(op string) {
 	e.UnacceptableOps[op] = true
 }
 
