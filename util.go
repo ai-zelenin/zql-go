@@ -2,6 +2,7 @@ package zql
 
 import (
 	"reflect"
+	"strings"
 	"time"
 )
 
@@ -41,7 +42,13 @@ func ReflectModelDescription(model interface{}, tagName string) map[string]strin
 		if tagName == "" {
 			name = rf.Name
 		} else {
-			name = rf.Tag.Get(tagName)
+			tagValue := rf.Tag.Get(tagName)
+			if tagValue != "" && tagValue != "-" {
+				commaIdx := strings.Index(tagValue, ",")
+				if commaIdx > 0 {
+					name = tagValue[:commaIdx]
+				}
+			}
 		}
 		result[name] = ValueTypeToString(rf.Type)
 	}
