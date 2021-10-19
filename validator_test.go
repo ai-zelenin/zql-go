@@ -71,14 +71,15 @@ func TestExtendableValidator_Validate(t *testing.T) {
 			}
 		}
 		if code != testCase.ErrorCode {
-			t.Fatalf("bad err code -  have:%v expect:%v", code, testCase.ErrorCode)
+			t.Fatalf("'%s' -> bad err code -  have:%v expect:%v", testCase.Code, code, testCase.ErrorCode)
 		}
 	}
 }
 
 func validate(q *Query) error {
 	var validator = NewExtendableValidator()
-	validator.SetupValidatorForModel(new(Human), "json")
+	model := make([]*Human, 0)
+	validator.SetupValidatorForModel(model, "json")
 	sqlt := NewSQLThesaurus("postgres")
 	sqlt.SetOpFunc("between", func(t *SQLThesaurus, field string, value interface{}) (goqu.Expression, error) {
 		rv := reflect.ValueOf(value)

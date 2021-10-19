@@ -1,6 +1,7 @@
 package zql
 
 import (
+	"fmt"
 	"reflect"
 	"strings"
 	"time"
@@ -34,8 +35,15 @@ func ReflectModelDescription(model interface{}, tagName string) map[string]strin
 	if rv.Kind() == reflect.Ptr {
 		rv = rv.Elem()
 	}
-	result := make(map[string]string, 0)
 	rt := rv.Type()
+	switch rt.Kind() {
+	case reflect.Slice, reflect.Array:
+		rt = rt.Elem()
+	}
+	if rt.Kind() == reflect.Ptr {
+		rt = rt.Elem()
+	}
+	result := make(map[string]string, 0)
 	for i := 0; i < rt.NumField(); i++ {
 		rf := rt.Field(i)
 		var name string
@@ -47,11 +55,14 @@ func ReflectModelDescription(model interface{}, tagName string) map[string]strin
 				commaIdx := strings.Index(tagValue, ",")
 				if commaIdx > 0 {
 					name = tagValue[:commaIdx]
+				} else {
+					name = tagValue
 				}
 			}
 		}
 		result[name] = ValueTypeToString(rf.Type)
 	}
+	fmt.Println(result)
 	return result
 }
 
