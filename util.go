@@ -1,7 +1,6 @@
 package zql
 
 import (
-	"fmt"
 	"reflect"
 	"strings"
 	"time"
@@ -31,11 +30,10 @@ func IsCompareOp(op string) bool {
 }
 
 func ReflectModelDescription(model interface{}, tagName string) map[string]string {
-	rv := reflect.ValueOf(model)
-	if rv.Kind() == reflect.Ptr {
-		rv = rv.Elem()
+	rt := reflect.TypeOf(model)
+	if rt.Kind() == reflect.Ptr {
+		rt = rt.Elem()
 	}
-	rt := rv.Type()
 	switch rt.Kind() {
 	case reflect.Slice, reflect.Array:
 		rt = rt.Elem()
@@ -62,7 +60,6 @@ func ReflectModelDescription(model interface{}, tagName string) map[string]strin
 		}
 		result[name] = ValueTypeToString(rf.Type)
 	}
-	fmt.Println(result)
 	return result
 }
 
