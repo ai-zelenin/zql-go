@@ -174,11 +174,11 @@ func (s *SQLThesaurus) QueryToSQL(q *Query, prepared bool) (string, []interface{
 	for _, order := range q.Orders {
 		var dir exp.SortDirection
 		var nullType exp.NullSortType
-		switch order.Direction {
-		case ASC:
+		switch strings.ToLower(string(order.Direction)) {
+		case "asc":
 			dir = exp.AscDir
 			nullType = exp.NullsFirstSortType
-		case DESC:
+		case "desc":
 			dir = exp.DescSortDir
 			nullType = exp.NullsLastSortType
 		}

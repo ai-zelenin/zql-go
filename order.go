@@ -3,8 +3,8 @@ package zql
 type Direction string
 
 const (
-	ASC  Direction = "ASC"
-	DESC Direction = "DESC"
+	ASC  Direction = "asc"
+	DESC Direction = "desc"
 )
 
 type Order struct {
