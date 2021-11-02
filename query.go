@@ -3,18 +3,20 @@ package zql
 import "encoding/json"
 
 type Query struct {
-	Model     string       `json:"model,omitempty" yaml:"model"`
-	Fields    []string     `json:"fields,omitempty" yaml:"fields"`
-	Uniq      string       `json:"uniq,omitempty" yaml:"uniq"`
-	Relations []string     `json:"relations,omitempty" yaml:"relations"`
-	Filter    []*Predicate `json:"filter,omitempty" yaml:"filter"`
-	Orders    []*Order     `json:"orders,omitempty" yaml:"orders"`
-	Page      int64        `json:"page,omitempty" yaml:"page"`
-	PerPage   int64        `json:"per_page,omitempty" yaml:"per_page"`
+	Model     string            `json:"model,omitempty" yaml:"model"`
+	Fields    []string          `json:"fields,omitempty" yaml:"fields"`
+	Uniq      string            `json:"uniq,omitempty" yaml:"uniq"`
+	Relations map[string]*Query `json:"relations,omitempty" yaml:"relations"`
+	Filter    []*Predicate      `json:"filter,omitempty" yaml:"filter"`
+	Orders    []*Order          `json:"orders,omitempty" yaml:"orders"`
+	Page      int64             `json:"page,omitempty" yaml:"page"`
+	PerPage   int64             `json:"per_page,omitempty" yaml:"per_page"`
 }
 
 func NewQuery() *Query {
-	return &Query{}
+	return &Query{
+		Relations: map[string]*Query{},
+	}
 }
 
 func (q *Query) LimitOffset() (limit int, offset int) {

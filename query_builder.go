@@ -1,12 +1,14 @@
 package zql
 
 type QueryBuilder struct {
-	query *Query
+	query  *Query
+	relMap map[string]*QueryBuilder
 }
 
 func NewQueryBuilder() *QueryBuilder {
 	return &QueryBuilder{
-		query: NewQuery(),
+		query:  NewQuery(),
+		relMap: map[string]*QueryBuilder{},
 	}
 }
 
@@ -23,9 +25,10 @@ func (qb *QueryBuilder) Page(page int64, perPage ...int64) *QueryBuilder {
 	return qb
 }
 
-func (qb *QueryBuilder) Relation(rels ...string) *QueryBuilder {
-	qb.query.Relations = append(qb.query.Relations, rels...)
-	return qb
+func (qb *QueryBuilder) Relation(rel string) *QueryBuilder {
+	newQb := NewQueryBuilder()
+	qb.relMap[rel] = newQb
+	return newQb
 }
 
 func (qb *QueryBuilder) Order(order ...*Order) *QueryBuilder {
@@ -38,5 +41,9 @@ func (qb *QueryBuilder) Uniq(field string) {
 }
 
 func (qb *QueryBuilder) Build() *Query {
-	return qb.query
+	q := qb.query
+	for rel, builder := range qb.relMap {
+		q.Relations[rel] = builder.Build()
+	}
+	return q
 }
