@@ -25,7 +25,7 @@ func NewSQLThesaurus(dialect string) *SQLThesaurus {
 				}
 				var and = goqu.And()
 				for _, predicate := range predicates {
-					expr, err := t.PredicateToExpression(predicate)
+					expr, err := t.PredicateToExpression(predicate, false)
 					if err != nil {
 						return nil, err
 					}
@@ -40,7 +40,7 @@ func NewSQLThesaurus(dialect string) *SQLThesaurus {
 				}
 				var or = goqu.Or()
 				for _, predicate := range predicates {
-					expr, err := t.PredicateToExpression(predicate)
+					expr, err := t.PredicateToExpression(predicate, false)
 					if err != nil {
 						return nil, err
 					}
@@ -90,9 +90,13 @@ func (s *SQLThesaurus) SetOpFunc(key string, f PredicateOpConvertFunc) {
 	s.opFuncMap[key] = f
 }
 
-func (s *SQLThesaurus) PredicateToExpression(p *Predicate) (goqu.Expression, error) {
+func (s *SQLThesaurus) PredicateToExpression(p *Predicate, asIdent bool) (goqu.Expression, error) {
 	var field = p.Field
 	var value = p.Value
+	if asIdent {
+		v, _ := p.Value.(string)
+		value = goqu.I(v)
+	}
 	var op = strings.ToLower(p.Op)
 	f, ok := s.opFuncMap[op]
 	if !ok {
@@ -107,7 +111,7 @@ func (s *SQLThesaurus) FilterToExpression(predicates []*Predicate) (goqu.Express
 	}
 	root := goqu.And()
 	for _, predicate := range predicates {
-		expr, err := s.PredicateToExpression(predicate)
+		expr, err := s.PredicateToExpression(predicate, false)
 		if err != nil {
 			return nil, err
 		}
@@ -139,7 +143,7 @@ func (s *SQLThesaurus) FilterToWherePart(predicates []*Predicate, prepared bool)
 	return s.FilterExpressionToWherePart(ex, prepared)
 }
 
-func (s *SQLThesaurus) QueryToSQL(q *Query, prepared bool) (string, []interface{}, error) {
+func (s *SQLThesaurus) ToGoQu(q *Query, bounded bool) (*goqu.SelectDataset, error) {
 	dialect := goqu.Dialect(s.dialect)
 	// Fields
 	fields := make([]interface{}, len(q.Fields))
@@ -158,6 +162,32 @@ func (s *SQLThesaurus) QueryToSQL(q *Query, prepared bool) (string, []interface{
 	}
 	query = query.From(model)
 
+	// With
+	for key, subQuery := range q.With {
+		subExp, err := s.ToGoQu(subQuery, false)
+		if err != nil {
+			return nil, err
+		}
+		query = query.With(key, subExp)
+	}
+
+	// Joins
+	for _, join := range q.Join {
+		predicateExp, err := s.PredicateToExpression(join.Predicate, true)
+		if err != nil {
+			return nil, err
+		}
+		onExp := goqu.On(predicateExp)
+		switch join.Type {
+		case JoinTypeInner:
+			query = query.InnerJoin(goqu.T(join.Table), onExp)
+		case JoinTypeLeft:
+			query = query.LeftJoin(goqu.T(join.Table), onExp)
+		case JoinTypeRight:
+			query = query.RightJoin(goqu.T(join.Table), onExp)
+		}
+	}
+
 	// Distinct
 	if q.Uniq != "" {
 		query = query.Distinct(q.Uniq)
@@ -166,9 +196,11 @@ func (s *SQLThesaurus) QueryToSQL(q *Query, prepared bool) (string, []interface{
 	// Where
 	where, err := s.FilterToExpression(q.Filter)
 	if err != nil {
-		return "", nil, err
+		return nil, err
 	}
-	query = query.Where(where)
+	if where != nil {
+		query = query.Where(where)
+	}
 
 	// Orders
 	for _, order := range q.Orders {
@@ -187,9 +219,16 @@ func (s *SQLThesaurus) QueryToSQL(q *Query, prepared bool) (string, []interface{
 	}
 
 	// Limit Offset
-	l, o := q.LimitOffset()
+	l, o := q.LimitOffset(bounded)
 	query = query.Limit(uint(l))
 	query = query.Offset(uint(o))
+	return query, nil
+}
 
-	return query.Prepared(prepared).ToSQL()
+func (s *SQLThesaurus) ToSQL(q *Query, prepared, bounded bool) (string, []interface{}, error) {
+	sds, err := s.ToGoQu(q, bounded)
+	if err != nil {
+		return "", nil, err
+	}
+	return sds.Prepared(prepared).ToSQL()
 }

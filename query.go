@@ -7,6 +7,8 @@ type Query struct {
 	Fields    []string          `json:"fields,omitempty" yaml:"fields"`
 	Uniq      string            `json:"uniq,omitempty" yaml:"uniq"`
 	Relations map[string]*Query `json:"relations,omitempty" yaml:"relations"`
+	With      map[string]*Query `json:"with,omitempty" yaml:"with"`
+	Join      []Join            `json:"join,omitempty" yaml:"join"`
 	Filter    []*Predicate      `json:"filter,omitempty" yaml:"filter"`
 	Orders    []*Order          `json:"orders,omitempty" yaml:"orders"`
 	Page      int64             `json:"page,omitempty" yaml:"page"`
@@ -16,17 +18,18 @@ type Query struct {
 func NewQuery() *Query {
 	return &Query{
 		Relations: map[string]*Query{},
+		With:      map[string]*Query{},
 	}
 }
 
-func (q *Query) LimitOffset() (limit int, offset int) {
+func (q *Query) LimitOffset(bounded bool) (limit int, offset int) {
 	if q.Page == 0 {
 		q.Page = 1
 	}
-	if q.PerPage == 0 {
+	if q.PerPage == 0 && bounded {
 		q.PerPage = DefaultPerPage
 	}
-	if q.PerPage > MaxPerPage {
+	if q.PerPage > MaxPerPage && bounded {
 		q.PerPage = MaxPerPage
 	}
 

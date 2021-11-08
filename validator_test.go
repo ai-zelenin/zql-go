@@ -97,7 +97,7 @@ func validate(q *Query) error {
 		return err
 	}
 
-	sql, _, err := sqlt.QueryToSQL(q, false)
+	sql, _, err := sqlt.ToSQL(q, false, true)
 	if err != nil {
 		return err
 	}
@@ -117,7 +117,7 @@ func validate(q *Query) error {
 	if err != nil {
 		return err
 	}
-	sqlAS, _, err := sqlt.QueryToSQL(afterSerializeQuery, false)
+	sqlAS, _, err := sqlt.ToSQL(afterSerializeQuery, false, true)
 	if err != nil {
 		return err
 	}
