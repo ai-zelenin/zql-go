@@ -7,8 +7,6 @@ type Query struct {
 	Fields    []string          `json:"fields,omitempty" yaml:"fields"`
 	Uniq      string            `json:"uniq,omitempty" yaml:"uniq"`
 	Relations map[string]*Query `json:"relations,omitempty" yaml:"relations"`
-	With      map[string]*Query `json:"with,omitempty" yaml:"with"`
-	Join      []Join            `json:"join,omitempty" yaml:"join"`
 	Filter    []*Predicate      `json:"filter,omitempty" yaml:"filter"`
 	Orders    []*Order          `json:"orders,omitempty" yaml:"orders"`
 	Page      int64             `json:"page,omitempty" yaml:"page"`
@@ -18,7 +16,6 @@ type Query struct {
 func NewQuery() *Query {
 	return &Query{
 		Relations: map[string]*Query{},
-		With:      map[string]*Query{},
 	}
 }
 

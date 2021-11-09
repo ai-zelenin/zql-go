@@ -162,32 +162,6 @@ func (s *SQLThesaurus) ToGoQu(q *Query, bounded bool) (*goqu.SelectDataset, erro
 	}
 	query = query.From(model)
 
-	// With
-	for key, subQuery := range q.With {
-		subExp, err := s.ToGoQu(subQuery, false)
-		if err != nil {
-			return nil, err
-		}
-		query = query.With(key, subExp)
-	}
-
-	// Joins
-	for _, join := range q.Join {
-		predicateExp, err := s.PredicateToExpression(join.Predicate, true)
-		if err != nil {
-			return nil, err
-		}
-		onExp := goqu.On(predicateExp)
-		switch join.Type {
-		case JoinTypeInner:
-			query = query.InnerJoin(goqu.T(join.Table), onExp)
-		case JoinTypeLeft:
-			query = query.LeftJoin(goqu.T(join.Table), onExp)
-		case JoinTypeRight:
-			query = query.RightJoin(goqu.T(join.Table), onExp)
-		}
-	}
-
 	// Distinct
 	if q.Uniq != "" {
 		query = query.Distinct(q.Uniq)

@@ -26,15 +26,6 @@ func TestSQLThesaurus_ToSQL(t *testing.T) {
 	if err != nil {
 		panic(err)
 	}
-	q.With = map[string]*Query{}
-	q.With["with_test"] = &Query{
-		Model: "test",
-	}
-	q.Join = append(q.Join, Join{
-		Type:      JoinTypeInner,
-		Table:     "joined_table",
-		Predicate: Eq("joined_table.id", "table.id"),
-	})
 	sqlt := NewSQLThesaurus("postgres")
 	sqlQuery, args, err := sqlt.ToSQL(q, false, true)
 	if err != nil {
@@ -42,7 +33,7 @@ func TestSQLThesaurus_ToSQL(t *testing.T) {
 	}
 	fmt.Println(q)
 	fmt.Println(sqlQuery, args)
-	expected := `WITH with_test AS (SELECT * FROM "test") SELECT * FROM * INNER JOIN "joined_table" ON ("joined_table"."id" = "table"."id") WHERE (("age" >= 15) OR (("age" <= 17) AND ("name" > 'fuck') AND ("name" IS NULL))) LIMIT 50`
+	expected := `SELECT * FROM * WHERE (("age" >= 15) OR (("age" <= 17) AND ("name" > 'fuck') AND ("name" IS NULL))) LIMIT 50`
 	if sqlQuery != expected {
 		t.Fail()
 	}
