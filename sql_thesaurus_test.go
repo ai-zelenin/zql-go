@@ -12,7 +12,7 @@ func ExampleSQLThesaurus_FilterToWherePart() {
 		panic(err)
 	}
 	sqlt := NewSQLThesaurus("postgres")
-	wherePart, args, err := sqlt.FilterToWherePart(q.Filter, true)
+	wherePart, args, err := sqlt.FilterToWherePart(q.Filter, true, true)
 	if err != nil {
 		panic(err)
 	}

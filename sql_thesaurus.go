@@ -105,13 +105,13 @@ func (s *SQLThesaurus) PredicateToExpression(p *Predicate, asIdent bool) (goqu.E
 	return f(s, field, value)
 }
 
-func (s *SQLThesaurus) FilterToExpression(predicates []*Predicate) (goqu.Expression, error) {
+func (s *SQLThesaurus) FilterToExpression(predicates []*Predicate, asIdent bool) (goqu.Expression, error) {
 	if len(predicates) == 0 {
 		return nil, nil
 	}
 	root := goqu.And()
 	for _, predicate := range predicates {
-		expr, err := s.PredicateToExpression(predicate, false)
+		expr, err := s.PredicateToExpression(predicate, asIdent)
 		if err != nil {
 			return nil, err
 		}
@@ -135,8 +135,8 @@ func (s *SQLThesaurus) FilterExpressionToWherePart(ex goqu.Expression, prepared 
 	return wherePart, values, nil
 }
 
-func (s *SQLThesaurus) FilterToWherePart(predicates []*Predicate, prepared bool) (string, []interface{}, error) {
-	ex, err := s.FilterToExpression(predicates)
+func (s *SQLThesaurus) FilterToWherePart(predicates []*Predicate, prepared, asIdent bool) (string, []interface{}, error) {
+	ex, err := s.FilterToExpression(predicates, asIdent)
 	if err != nil {
 		panic(err)
 	}
@@ -168,7 +168,7 @@ func (s *SQLThesaurus) ToGoQu(q *Query, bounded bool) (*goqu.SelectDataset, erro
 	}
 
 	// Where
-	where, err := s.FilterToExpression(q.Filter)
+	where, err := s.FilterToExpression(q.Filter, false)
 	if err != nil {
 		return nil, err
 	}
