@@ -49,11 +49,11 @@ func (e *ExtendableValidator) AddPredicateValidator(v ValidatorPredicate) {
 	e.PredicateValidators = append(e.PredicateValidators, v)
 }
 
-func (e *ExtendableValidator) SetupValidatorForModel(model interface{}, tagName string) {
-	modelDescription := ReflectModelDescription(model, tagName)
-	for fieldName, valueType := range modelDescription {
-		e.FieldsValidator.AddField(fieldName)
-		e.ValuesValidator.AddFieldValuePair(fieldName, valueType)
+func (e *ExtendableValidator) SetupValidatorForModel(model interface{}, tagName string, fieldDescFunc FieldDescFunc) {
+	modelDescription := ReflectModelDescription(model, tagName, fieldDescFunc)
+	for _, fieldDesc := range modelDescription {
+		e.FieldsValidator.AddField(fieldDesc)
+		e.ValuesValidator.AddFieldValuePair(fieldDesc)
 	}
 }
 

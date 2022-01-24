@@ -17,11 +17,11 @@ func NewValidatorPredicateValues() *ValidatorPredicateValues {
 	}
 }
 
-func (v *ValidatorPredicateValues) AddFieldValuePair(field, valueType string) {
-	v.RequiredFieldValueTypeMap[field] = valueType
+func (v *ValidatorPredicateValues) AddFieldValuePair(f FieldDesc) {
+	v.RequiredFieldValueTypeMap[f.Name] = f.Type
 }
 
-func (v *ValidatorPredicateValues) Validate(field, op string, value interface{}, rt reflect.Type, rv reflect.Value) error {
+func (v *ValidatorPredicateValues) Validate(field, op string, _ interface{}, rt reflect.Type, rv reflect.Value) error {
 	if rt == nil {
 		return nil
 	}

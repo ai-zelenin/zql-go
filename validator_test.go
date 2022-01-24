@@ -86,7 +86,7 @@ func TestExtendableValidator_Validate(t *testing.T) {
 func validate(q *Query) error {
 	var validator = NewExtendableValidator()
 	model := make([]*Human, 0)
-	validator.SetupValidatorForModel(model, "json")
+	validator.SetupValidatorForModel(model, "json", nil)
 	sqlt := NewSQLThesaurus("postgres")
 	sqlt.SetOpFunc("between", func(t *SQLThesaurus, field string, value interface{}) (goqu.Expression, error) {
 		rv := reflect.ValueOf(value)

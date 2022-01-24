@@ -30,7 +30,15 @@ func IsCompareOp(op string) bool {
 	return false
 }
 
-func ReflectModelDescription(model interface{}, tagName string) map[string]string {
+type FieldDescFunc func(desc FieldDesc, rf reflect.StructField) FieldDesc
+
+type FieldDesc struct {
+	Name         string
+	Type         string
+	ValidateFunc ValidatePredicateFunc
+}
+
+func ReflectModelDescription(model interface{}, tagName string, fieldDescFunc FieldDescFunc) []FieldDesc {
 	rt := reflect.TypeOf(model)
 	if rt.Kind() == reflect.Ptr {
 		rt = rt.Elem()
@@ -42,7 +50,7 @@ func ReflectModelDescription(model interface{}, tagName string) map[string]strin
 	if rt.Kind() == reflect.Ptr {
 		rt = rt.Elem()
 	}
-	result := make(map[string]string, 0)
+	result := make([]FieldDesc, 0)
 	for i := 0; i < rt.NumField(); i++ {
 		rf := rt.Field(i)
 		var name string
@@ -59,7 +67,14 @@ func ReflectModelDescription(model interface{}, tagName string) map[string]strin
 				}
 			}
 		}
-		result[name] = ValueTypeToString(rf.Type)
+		desc := FieldDesc{
+			Name: name,
+			Type: ValueTypeToString(rf.Type),
+		}
+		if fieldDescFunc != nil {
+			desc = fieldDescFunc(desc, rf)
+		}
+		result = append(result, desc)
 	}
 	return result
 }
