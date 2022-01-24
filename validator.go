@@ -12,8 +12,8 @@ type Validator interface {
 }
 
 type ExtendableValidator struct {
-	validators          []Validator
-	predicateValidators []ValidatorPredicate
+	Validators          []Validator
+	PredicateValidators []ValidatorPredicate
 	FieldsValidator     *ValidatorPredicateFields
 	ValuesValidator     *ValidatorPredicateValues
 	OpsValidator        *ValidatorPredicateOps
@@ -26,10 +26,10 @@ func NewExtendableValidator() *ExtendableValidator {
 	valueValidator := NewValidatorPredicateValues()
 	opsValidator := NewValidatorPredicateOps()
 	return &ExtendableValidator{
-		validators: []Validator{
+		Validators: []Validator{
 			NewValidatorOrders(),
 		},
-		predicateValidators: []ValidatorPredicate{
+		PredicateValidators: []ValidatorPredicate{
 			fieldsValidator,
 			valueValidator,
 			opsValidator,
@@ -42,11 +42,11 @@ func NewExtendableValidator() *ExtendableValidator {
 }
 
 func (e *ExtendableValidator) AddValidator(v Validator) {
-	e.validators = append(e.validators, v)
+	e.Validators = append(e.Validators, v)
 }
 
 func (e *ExtendableValidator) AddPredicateValidator(v ValidatorPredicate) {
-	e.predicateValidators = append(e.predicateValidators, v)
+	e.PredicateValidators = append(e.PredicateValidators, v)
 }
 
 func (e *ExtendableValidator) SetupValidatorForModel(model interface{}, tagName string) {
@@ -62,7 +62,7 @@ func (e *ExtendableValidator) Validate(q *Query) error {
 	if err != nil {
 		return err
 	}
-	for _, validator := range e.validators {
+	for _, validator := range e.Validators {
 		err = validator.Validate(q)
 		if err != nil {
 			return err
@@ -100,7 +100,7 @@ func (e *ExtendableValidator) validatePredicate(p *Predicate) error {
 	value := p.Value
 	rv := reflect.ValueOf(value)
 	rt := reflect.TypeOf(value)
-	for _, validator := range e.predicateValidators {
+	for _, validator := range e.PredicateValidators {
 		if validator != nil {
 			err := validator.Validate(field, op, value, rt, rv)
 			if err != nil {

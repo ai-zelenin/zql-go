@@ -14,14 +14,16 @@ func NewValidatorPredicateFields(acceptableFields ...string) *ValidatorPredicate
 	for _, field := range acceptableFields {
 		m[field] = true
 	}
-	return &ValidatorPredicateFields{AcceptableFields: m}
+	return &ValidatorPredicateFields{
+		AcceptableFields: m,
+	}
 }
 
 func (e *ValidatorPredicateFields) AddField(f string) {
 	e.AcceptableFields[f] = true
 }
 
-func (e *ValidatorPredicateFields) Validate(field, op string, value interface{}, rt reflect.Type, rv reflect.Value) error {
+func (e *ValidatorPredicateFields) Validate(field, _ string, _ interface{}, _ reflect.Type, _ reflect.Value) error {
 	if field != "" {
 		_, isFieldAcceptable := e.AcceptableFields[field]
 		if !isFieldAcceptable {

@@ -12,6 +12,7 @@ const (
 	ValueTypeString = "string"
 	ValueTypeNumber = "number"
 	ValueTypeBool   = "bool"
+	ValueTypeStruct = "struct"
 )
 
 var TimeReflectedType = reflect.TypeOf(time.Now())
@@ -69,6 +70,9 @@ func ReflectValueTypeName(i interface{}) string {
 }
 
 func ValueTypeToString(rt reflect.Type) string {
+	if rt == TimeReflectedType {
+		return ValueTypeString
+	}
 	switch rt.Kind() {
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
 		return ValueTypeNumber
@@ -80,9 +84,8 @@ func ValueTypeToString(rt reflect.Type) string {
 		return ValueTypeBool
 	case reflect.String:
 		return ValueTypeString
-	}
-	if rt == TimeReflectedType {
-		return ValueTypeString
+	case reflect.Struct, reflect.Map:
+		return ValueTypeStruct
 	}
 	return rt.String()
 }

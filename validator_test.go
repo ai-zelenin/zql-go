@@ -12,6 +12,12 @@ import (
 
 type Status int
 
+type MetaData struct {
+	Field1 string
+	Field2 int
+	Field3 bool
+}
+
 type Human struct {
 	ID        int64     `json:"id"`
 	Name      string    `json:"name"`
@@ -19,6 +25,7 @@ type Human struct {
 	Age       int64     `json:"age"`
 	Sex       bool      `json:"sex"`
 	BirthDate time.Time `json:"birth_date"`
+	Meta      *MetaData `json:"meta"`
 }
 
 type ValidatorTestCase struct {
