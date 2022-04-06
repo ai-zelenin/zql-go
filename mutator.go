@@ -52,6 +52,12 @@ func (e *ExtendableMutator) mutateFilter(q *Query) error {
 			return err
 		}
 	}
+	for _, query := range q.Relations {
+		err := e.mutateFilter(query)
+		if err != nil {
+			return err
+		}
+	}
 	return nil
 }
 

@@ -6,25 +6,60 @@ import (
 )
 
 type MutatorTestCase struct {
-	Code      string
+	Query     *Query
 	ErrorCode ErrCode
 }
 
 var MutatorTestTable = []MutatorTestCase{
 	{
-		Code:      `("InvalidFieldName" == true && "age" >= 18)`,
+		Query: &Query{
+			Filter: []*Predicate{
+				{
+					Op: AND,
+					Value: []*Predicate{
+						{
+							Field: "InvalidFieldName",
+							Op:    EQ,
+							Value: true,
+						},
+						{
+							Field: "age",
+							Op:    GTE,
+							Value: 18,
+						},
+					},
+				},
+			},
+			Relations: map[string]*Query{
+				"Rel": {
+					Filter: []*Predicate{
+						{
+							Op: AND,
+							Value: []*Predicate{
+								{
+									Field: "InvalidFieldName",
+									Op:    EQ,
+									Value: false,
+								},
+								{
+									Field: "age",
+									Op:    GTE,
+									Value: 18,
+								},
+							},
+						},
+					},
+				},
+			},
+		},
 		ErrorCode: 0,
 	},
 }
 
 func TestExtendableMutator_Mutate(t *testing.T) {
 	for _, testCase := range MutatorTestTable {
-		q, err := Run(testCase.Code, NewSyntaxV1())
-		if err != nil {
-			panic(err)
-		}
 		code := ErrCode(0)
-		err = mutate(q)
+		err := mutate(testCase.Query)
 		if err != nil {
 			e, ok := err.(*Error)
 			if ok {
