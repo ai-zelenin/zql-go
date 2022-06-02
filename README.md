@@ -6,30 +6,170 @@
 go get -u github.com/ai-zelenin/zql-go
 ```
 
-### Usage
+### Concept
 
-#### Build Query from expr
+ZQL is machine friendly abstract query format.
+It used for machine processing/generating data queries.
+
+Almost any data query can be represented as predicate tree.  
+A Predicate in programming is an expression that uses one or more values with a boolean result.  
+ZQL Predicate looks like this:
+
+##### Golang
 
 ```go
-
-package main
-
-import (
-	"fmt"
-	"github.com/ai-zelenin/zql-go"
-)
-
-func main() {
-	code := `"age">=18 || ("age"<18 && "name"=="lol")`
-	q, err := zql.Run(code, zql.NewSyntaxV1())
-	if err != nil {
-		panic(err)
-	}
-	fmt.Println(q)
+type Predicate struct {
+    Field string   
+    Op    string    
+    Value interface{}
 }
 ```
 
-#### Make SQL from query
+##### Json example
+
+```json
+{
+  "field": "field_name",
+  "op": "gte",
+  "value": 18
+}
+```
+
+For example, we have table "humans"
+<table>
+<thead>
+<tr>
+<th>id</th>
+<th>name</th>
+<th>age</th>
+<th>sex</th>
+<th>status</th>
+<th>created_at</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>pole</td>
+<td>16</td>
+<td>1</td>
+<td>1</td>
+<td>2022-06-01T01:01:30</td>
+</tr>
+<tr>
+<td>2</td>
+<td>nickol</td>
+<td>42</td>
+<td>2</td>
+<td>1</td>
+<td>2022-06-02T02:03:30</td>
+</tr>
+<tr>
+<td>3</td>
+<td>ivan</td>
+<td>34</td>
+<td>1</td>
+<td>2</td>
+<td>2022-05-30T08:06:10</td>
+</tr>
+</tbody>
+</table>
+
+We want select only humans which is male and adult or female and have status=2
+
+Such SQL query look like this:
+
+```sql
+select *
+from "humans"
+where ("sex" = 1 AND "age" >= 18)
+   OR ("sex" = 2 AND "status" = 2); 
+```
+
+This query contains 7 predicates.  
+4 with arithmetic operations.  
+3 with logic operations.  
+
+```text
+P1: sex == 1
+P2: age >= 18
+P3: P1 && P2
+P4: sex == 2
+P5: status == 2
+P6: P4 && P5
+P7: P3 || P6
+```
+
+If translate SQL to ZQL it looks like this
+```json
+{
+  "filter": [
+    {
+      "op": "or",
+      "value": [
+        {
+          "op": "and",
+          "value": [
+            {
+              "field": "sex",
+              "op": "eq",
+              "value": 1
+            },
+            {
+              "field": "age",
+              "op": "gte",
+              "value": 18
+            }
+          ]
+        },
+        {
+          "op": "and",
+          "value": [
+            {
+              "field": "sex",
+              "op": "eq",
+              "value": 2
+            },
+            {
+              "field": "status",
+              "op": "eq",
+              "value": 2
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
+```
+
+By default zql-go can convert ZQL data queries to SQL data queries 
+with this predicate operations
+
+#### Logic
+* AND ("and")
+* OR ("or")
+
+
+#### Arithmetic
+* EQ ("eq")
+* GT ("gt")
+* GTE ("gte")
+* LT ("lt")
+* LTE ("lte")
+* NEQ ("neq")
+* IN ("in")
+* LIKE ("like")
+* ILIKE ("ilike")
+
+#### Text
+* LIKE ("like")    
+* ILIKE ("ilike")   
+
+
+#### Examples
+
+##### Use Query builder
 
 ```go
 package main
@@ -65,7 +205,28 @@ func main() {
 }
 ```
 
-#### Make only where part (useful for orm)
+##### Use expr
+
+```go
+
+package main
+
+import (
+	"fmt"
+	"github.com/ai-zelenin/zql-go"
+)
+
+func main() {
+	code := `"age">=18 || ("age"<18 && "name"=="lol")`
+	q, err := zql.Run(code, zql.NewSyntaxV1())
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println(q)
+}
+```
+
+##### Build only where part (useful for orm)
 
 ```go
 package main
@@ -84,27 +245,32 @@ func main() {
       "op": "or",
       "value": [
         {
-          "field": "f0",
-          "op": "gte",
-          "value": 0
+          "op": "and",
+          "value": [
+            {
+              "field": "sex",
+              "op": "eq",
+              "value": 1
+            },
+            {
+              "field": "age",
+              "op": "gte",
+              "value": 18
+            }
+          ]
         },
         {
           "op": "and",
           "value": [
             {
-              "field": "f1",
-              "op": "eq",
-              "value": 1
-            },
-            {
-              "field": "f2",
+              "field": "sex",
               "op": "eq",
               "value": 2
             },
             {
-              "field": "f3",
+              "field": "status",
               "op": "eq",
-              "value": 3
+              "value": 2
             }
           ]
         }
@@ -131,7 +297,7 @@ func main() {
 }
 ```
 
-#### Use Validator
+##### Use Validator
 
 ```go
 
@@ -168,7 +334,7 @@ func main() {
 }
 ```
 
-#### Create custom validation
+##### Create custom validation
 
 ```go
 
@@ -201,7 +367,7 @@ func main() {
 }
 ```
 
-#### Create custom predicate Op
+##### Create custom predicate Op
 
 ```go
 
