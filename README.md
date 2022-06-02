@@ -19,9 +19,9 @@ ZQL Predicate looks like this:
 
 ```go
 type Predicate struct {
-    Field string   
-    Op    string    
-    Value interface{}
+Field string
+Op    string
+Value interface{}
 }
 ```
 
@@ -88,7 +88,7 @@ where ("sex" = 1 AND "age" >= 18)
 
 This query contains 7 predicates.  
 4 with arithmetic operations.  
-3 with logic operations.  
+3 with logic operations.
 
 ```text
 P1: sex == 1
@@ -101,6 +101,7 @@ P7: P3 || P6
 ```
 
 If translate SQL to ZQL it looks like this
+
 ```json
 {
   "filter": [
@@ -143,29 +144,98 @@ If translate SQL to ZQL it looks like this
 }
 ```
 
-By default zql-go can convert ZQL data queries to SQL data queries 
+By default zql-go can convert ZQL data queries to SQL data queries
 with this predicate operations
 
 #### Logic
-* AND ("and")
-* OR ("or")
-
+<table>
+<tbody>
+<tr>
+<th>Name</th>
+<th>SQL</th>
+<th>ZQL</th>
+</tr>
+<tr>
+<td>AND</td>
+<td>and</td>
+<td>AND</td>
+</tr>
+<tr>
+<td>OR</td>
+<td>or</td>
+<td>OR</td>
+</tr>
+</tbody>
+</table>
 
 #### Arithmetic
-* EQ ("eq")
-* GT ("gt")
-* GTE ("gte")
-* LT ("lt")
-* LTE ("lte")
-* NEQ ("neq")
-* IN ("in")
-* LIKE ("like")
-* ILIKE ("ilike")
+
+<table>
+<tbody>
+<tr>
+<th>Name</th>
+<th>SQL</th>
+<th>ZQL</th>
+</tr>
+<tr>
+<td>EQ</td>
+<td>eq</td>
+<td>=</td>
+</tr>
+<tr>
+<td>GT</td>
+<td>gt</td>
+<td>&gt;</td>
+</tr>
+<tr>
+<td>GTE</td>
+<td>gte</td>
+<td>&gt;=</td>
+</tr>
+<tr>
+<td>LT</td>
+<td>lt</td>
+<td>&lt;</td>
+</tr>
+<tr>
+<td>LTE</td>
+<td>lte</td>
+<td>&lt;=</td>
+</tr>
+<tr>
+<td>NEQ</td>
+<td>neq</td>
+<td>!=</td>
+</tr>
+<tr>
+<td>IN</td>
+<td>in</td>
+<td>in ()</td>
+</tr>
+</tbody>
+</table>
 
 #### Text
-* LIKE ("like")    
-* ILIKE ("ilike")   
 
+<table>
+<tbody>
+<tr>
+<th>Name</th>
+<th>SQL</th>
+<th>ZQL</th>
+</tr>
+<tr>
+<td>LIKE</td>
+<td>like</td>
+<td>LIKE</td>
+</tr>
+<tr>
+<td>ILIKE</td>
+<td>ilike</td>
+<td>iLIKE</td>
+</tr>
+</tbody>
+</table>
 
 #### Examples
 
