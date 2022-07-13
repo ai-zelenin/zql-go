@@ -18,7 +18,7 @@ const (
 
 var TimeReflectedType = reflect.TypeOf(time.Now())
 
-var SanitizeRegexp = regexp.MustCompile(`[^\w\d]`)
+var SanitizeRegexp = regexp.MustCompile(`[^\w\d.]`)
 
 func Sanitize(str string) string {
 	return SanitizeRegexp.ReplaceAllString(str, "")
