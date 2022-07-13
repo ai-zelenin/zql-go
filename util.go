@@ -2,6 +2,7 @@ package zql
 
 import (
 	"reflect"
+	"regexp"
 	"strings"
 	"time"
 )
@@ -16,6 +17,12 @@ const (
 )
 
 var TimeReflectedType = reflect.TypeOf(time.Now())
+
+var SanitizeRegexp = regexp.MustCompile(`[^\w\d]`)
+
+func Sanitize(str string) string {
+	return SanitizeRegexp.ReplaceAllString(str, "")
+}
 
 func IsNilValue(c interface{}) bool {
 	v := reflect.ValueOf(c)

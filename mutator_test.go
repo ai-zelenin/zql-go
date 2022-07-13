@@ -87,7 +87,7 @@ func mutate(q *Query) error {
 		panic(err)
 	}
 
-	sqlt := NewSQLThesaurus("postgres")
+	sqlt := NewSQLThesaurus("postgres", nil)
 	sql, _, err := sqlt.ToSQL(q, false, true)
 	if err != nil {
 		return err

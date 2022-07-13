@@ -8,15 +8,32 @@ import (
 )
 
 type PredicateOpConvertFunc func(t *SQLThesaurus, field string, value interface{}) (goqu.Expression, error)
+type FieldConvertFunc func(fieldName string) FieldExp
 
-type SQLThesaurus struct {
-	dialect   string
-	opFuncMap map[string]PredicateOpConvertFunc
+type FieldExp interface {
+	exp.Comparable
+	exp.Isable
+	exp.Inable
+	exp.Likeable
+	exp.Rangeable
+	exp.Orderable
 }
 
-func NewSQLThesaurus(dialect string) *SQLThesaurus {
+type SQLThesaurus struct {
+	dialect          string
+	opFuncMap        map[string]PredicateOpConvertFunc
+	fieldConvertFunc FieldConvertFunc
+}
+
+func NewSQLThesaurus(dialect string, fieldConvertFunc FieldConvertFunc) *SQLThesaurus {
+	if fieldConvertFunc == nil {
+		fieldConvertFunc = func(fieldName string) FieldExp {
+			return goqu.I(Sanitize(fieldName))
+		}
+	}
 	t := &SQLThesaurus{
-		dialect: dialect,
+		dialect:          dialect,
+		fieldConvertFunc: fieldConvertFunc,
 		opFuncMap: map[string]PredicateOpConvertFunc{
 			AND: func(t *SQLThesaurus, field string, value interface{}) (goqu.Expression, error) {
 				predicates, ok := value.([]*Predicate)
@@ -50,36 +67,36 @@ func NewSQLThesaurus(dialect string) *SQLThesaurus {
 			},
 			EQ: func(t *SQLThesaurus, field string, value interface{}) (goqu.Expression, error) {
 				if IsNilValue(value) {
-					return goqu.I(field).IsNull(), nil
+					return t.fieldConvertFunc(field).IsNull(), nil
 				}
-				return goqu.I(field).Eq(value), nil
+				return t.fieldConvertFunc(field).Eq(value), nil
 			},
 			NEQ: func(t *SQLThesaurus, field string, value interface{}) (goqu.Expression, error) {
 				if IsNilValue(value) {
-					return goqu.I(field).IsNotNull(), nil
+					return t.fieldConvertFunc(field).IsNotNull(), nil
 				}
-				return goqu.I(field).Neq(value), nil
+				return t.fieldConvertFunc(field).Neq(value), nil
 			},
 			GT: func(t *SQLThesaurus, field string, value interface{}) (goqu.Expression, error) {
-				return goqu.I(field).Gt(value), nil
+				return t.fieldConvertFunc(field).Gt(value), nil
 			},
 			GTE: func(t *SQLThesaurus, field string, value interface{}) (goqu.Expression, error) {
-				return goqu.I(field).Gte(value), nil
+				return t.fieldConvertFunc(field).Gte(value), nil
 			},
 			LT: func(t *SQLThesaurus, field string, value interface{}) (goqu.Expression, error) {
-				return goqu.I(field).Lt(value), nil
+				return t.fieldConvertFunc(field).Lt(value), nil
 			},
 			LTE: func(t *SQLThesaurus, field string, value interface{}) (goqu.Expression, error) {
-				return goqu.I(field).Lte(value), nil
+				return t.fieldConvertFunc(field).Lte(value), nil
 			},
 			IN: func(t *SQLThesaurus, field string, value interface{}) (goqu.Expression, error) {
-				return goqu.I(field).In(value), nil
+				return t.fieldConvertFunc(field).In(value), nil
 			},
 			LIKE: func(t *SQLThesaurus, field string, value interface{}) (goqu.Expression, error) {
-				return goqu.I(field).Like(value), nil
+				return t.fieldConvertFunc(field).Like(value), nil
 			},
 			ILIKE: func(t *SQLThesaurus, field string, value interface{}) (goqu.Expression, error) {
-				return goqu.I(field).ILike(value), nil
+				return t.fieldConvertFunc(field).ILike(value), nil
 			},
 		},
 	}
@@ -90,12 +107,14 @@ func (s *SQLThesaurus) SetOpFunc(key string, f PredicateOpConvertFunc) {
 	s.opFuncMap[key] = f
 }
 
-func (s *SQLThesaurus) PredicateToExpression(p *Predicate, asIdent bool) (goqu.Expression, error) {
+func (s *SQLThesaurus) PredicateToExpression(p *Predicate, valueAsIdent bool) (goqu.Expression, error) {
 	var field = p.Field
 	var value = p.Value
-	if asIdent {
-		v, _ := p.Value.(string)
-		value = goqu.I(v)
+	if valueAsIdent {
+		v, ok := p.Value.(string)
+		if ok {
+			value = goqu.I(v)
+		}
 	}
 	var op = strings.ToLower(p.Op)
 	f, ok := s.opFuncMap[op]
@@ -188,7 +207,7 @@ func (s *SQLThesaurus) ToGoQu(q *Query, bounded bool) (*goqu.SelectDataset, erro
 			dir = exp.DescSortDir
 			nullType = exp.NullsLastSortType
 		}
-		expr := exp.NewOrderedExpression(goqu.I(order.Field), dir, nullType)
+		expr := exp.NewOrderedExpression(goqu.L(order.Field), dir, nullType)
 		query = query.OrderAppend(expr)
 	}
 

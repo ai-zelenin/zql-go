@@ -35,7 +35,7 @@ func (d *DebugHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 func (d *DebugHandler) handleQuery(q *Query) ([]byte, error) {
-	sqlt := NewSQLThesaurus("postgres")
+	sqlt := NewSQLThesaurus("postgres", nil)
 	cond, args, err := sqlt.ToSQL(q, true, true)
 	if err != nil {
 		return nil, err

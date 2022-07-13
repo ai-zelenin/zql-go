@@ -11,7 +11,7 @@ func ExampleSQLThesaurus_FilterToWherePart() {
 	if err != nil {
 		panic(err)
 	}
-	sqlt := NewSQLThesaurus("postgres")
+	sqlt := NewSQLThesaurus("postgres", nil)
 	wherePart, args, err := sqlt.FilterToWherePart(q.Filter, true, true)
 	if err != nil {
 		panic(err)
@@ -26,7 +26,7 @@ func TestSQLThesaurus_ToSQL(t *testing.T) {
 	if err != nil {
 		panic(err)
 	}
-	sqlt := NewSQLThesaurus("postgres")
+	sqlt := NewSQLThesaurus("postgres", nil)
 	sqlQuery, args, err := sqlt.ToSQL(q, false, true)
 	if err != nil {
 		panic(err)
