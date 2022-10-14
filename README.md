@@ -15,6 +15,10 @@ Almost any data query can be represented as predicate tree.
 A Predicate in programming is an expression that uses one or more values with a boolean result.  
 ZQL Predicate looks like this:
 
+###
+Another languages
+https://github.com/ai-zelenin/zql-ts
+
 ##### Golang
 
 ```go
