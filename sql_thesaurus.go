@@ -2,9 +2,10 @@ package zql
 
 import (
 	"fmt"
+	"strings"
+
 	"github.com/doug-martin/goqu/v9"
 	"github.com/doug-martin/goqu/v9/exp"
-	"strings"
 )
 
 type PredicateOpConvertFunc func(t *SQLThesaurus, field string, value interface{}) (goqu.Expression, error)
@@ -205,6 +206,12 @@ func (s *SQLThesaurus) ToGoQu(q *Query, bounded bool) (*goqu.SelectDataset, erro
 			nullType = exp.NullsFirstSortType
 		case DESC:
 			dir = exp.DescSortDir
+			nullType = exp.NullsLastSortType
+		}
+		switch NullSortType(strings.ToLower(string(order.NullSortType))) {
+		case NullsFirst:
+			nullType = exp.NullsFirstSortType
+		case NullsLast:
 			nullType = exp.NullsLastSortType
 		}
 		expr := exp.NewOrderedExpression(goqu.L(order.Field), dir, nullType)

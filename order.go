@@ -7,22 +7,42 @@ const (
 	DESC Direction = "desc"
 )
 
-type Order struct {
-	Field     string    `json:"field,omitempty" yaml:"field"`
-	Direction Direction `json:"direction,omitempty" yaml:"direction"`
-}
+type NullSortType string
 
-func NewOrder(field string, dir Direction) *Order {
-	return &Order{
-		Field:     field,
-		Direction: dir,
+const (
+	NullsFirst NullSortType = "first"
+	NullsLast  NullSortType = "last"
+)
+
+type OrderOption func(o *Order)
+
+func WithNullsLast() OrderOption {
+	return func(o *Order) {
+		o.NullSortType = NullsLast
 	}
 }
 
-func Asc(field string) *Order {
-	return NewOrder(field, ASC)
+type Order struct {
+	Field        string       `json:"field,omitempty" yaml:"field"`
+	Direction    Direction    `json:"direction,omitempty" yaml:"direction"`
+	NullSortType NullSortType `json:"null_sort_type" yaml:"null_sort_type"`
 }
 
-func Desc(field string) *Order {
-	return NewOrder(field, DESC)
+func NewOrder(field string, dir Direction, options ...OrderOption) *Order {
+	o := &Order{
+		Field:     field,
+		Direction: dir,
+	}
+	for _, option := range options {
+		option(o)
+	}
+	return o
+}
+
+func Asc(field string, options ...OrderOption) *Order {
+	return NewOrder(field, ASC, options...)
+}
+
+func Desc(field string, options ...OrderOption) *Order {
+	return NewOrder(field, DESC, options...)
 }
