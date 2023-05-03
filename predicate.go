@@ -2,6 +2,8 @@ package zql
 
 import (
 	"encoding/json"
+	"fmt"
+
 	"github.com/tidwall/gjson"
 )
 
@@ -20,9 +22,29 @@ const (
 )
 
 type Predicate struct {
-	Field string      `json:"field,omitempty" yaml:"field"`
-	Op    string      `json:"op,omitempty" yaml:"op"`
-	Value interface{} `json:"value,omitempty" yaml:"value"`
+	Field string `json:"field,omitempty" yaml:"field"`
+	Op    string `json:"op,omitempty" yaml:"op"`
+	Value any    `json:"value,omitempty" yaml:"value"`
+}
+
+func (p *Predicate) FuncName() string {
+	return p.Op
+}
+
+func (p *Predicate) Args() map[string]any {
+	return map[string]any{
+		"op":    p.Op,
+		"field": p.Field,
+		"value": p.Value,
+	}
+}
+
+func NewPredicate(op string, field string, value interface{}) *Predicate {
+	return &Predicate{
+		Field: field,
+		Value: value,
+		Op:    op,
+	}
 }
 
 func (p *Predicate) IsGroup() bool {
@@ -41,7 +63,7 @@ func (p *Predicate) Append(n Node) {
 	}
 }
 
-func (p *Predicate) ChildList() []Node {
+func (p *Predicate) Children() []Node {
 	var list []Node
 	if p.IsGroup() {
 		predicates, ok := p.Value.([]*Predicate)
@@ -55,21 +77,27 @@ func (p *Predicate) ChildList() []Node {
 	return list
 }
 
-func (p *Predicate) Walk(cb WalkFunc, parent Node, lvl int) (Node, error) {
-	newNode, err := cb(parent, p, lvl)
+func (p *Predicate) Walk(cb WalkFunc, parent Node, lvl int) error {
+	err := cb(parent, p, lvl)
 	if err != nil {
-		return nil, err
+		return err
 	}
-	for _, node := range p.ChildList() {
-		childNode, err := node.Walk(cb, p, lvl+1)
+	for _, node := range p.Children() {
+		err = node.Walk(cb, p, lvl+1)
 		if err != nil {
-			return nil, err
-		}
-		if newNode != nil {
-			newNode.Append(childNode)
+			return err
 		}
 	}
-	return newNode, nil
+	return nil
+}
+
+func (p *Predicate) String() string {
+	switch p.Op {
+	case AND, OR:
+		return fmt.Sprintf("%s(\n%v\n)", p.Op, p.Value)
+	default:
+		return fmt.Sprintf("%s(%s,%v)", p.Op, p.Field, p.Value)
+	}
 }
 
 func (p *Predicate) UnmarshalJSON(bytes []byte) error {
@@ -104,14 +132,6 @@ func (p *Predicate) UnmarshalJSON(bytes []byte) error {
 		p.Value = pr.Value
 	}
 	return nil
-}
-
-func NewPredicate(op string, field string, value interface{}) *Predicate {
-	return &Predicate{
-		Field: field,
-		Value: value,
-		Op:    op,
-	}
 }
 
 func And(p ...*Predicate) *Predicate {

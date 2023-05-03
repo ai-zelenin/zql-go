@@ -75,14 +75,14 @@ func (e *ExtendableValidator) validateFilter(q *Query) error {
 	counter := 0
 	for _, predicate := range q.Filter {
 		counter++
-		_, err := predicate.Walk(func(parent Node, current Node, lvl int) (Node, error) {
+		err := predicate.Walk(func(parent Node, current Node, lvl int) error {
 			counter++
 			currentPr := current.(*Predicate)
 			err := e.validatePredicate(currentPr)
 			if err != nil {
-				return nil, err
+				return err
 			}
-			return nil, nil
+			return nil
 		}, nil, 0)
 		if err != nil {
 			return err

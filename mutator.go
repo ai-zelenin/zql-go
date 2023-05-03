@@ -40,13 +40,13 @@ func (e *ExtendableMutator) Mutate(q *Query) error {
 
 func (e *ExtendableMutator) mutateFilter(q *Query) error {
 	for _, predicate := range q.Filter {
-		_, err := predicate.Walk(func(parent Node, current Node, lvl int) (Node, error) {
+		err := predicate.Walk(func(parent Node, current Node, lvl int) error {
 			currentPr := current.(*Predicate)
 			err := e.mutatePredicate(currentPr)
 			if err != nil {
-				return nil, err
+				return err
 			}
-			return nil, nil
+			return nil
 		}, nil, 0)
 		if err != nil {
 			return err

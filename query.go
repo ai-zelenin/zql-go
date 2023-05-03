@@ -36,7 +36,7 @@ func (q *Query) LimitOffset(bounded bool) (limit int, offset int) {
 }
 
 func (q *Query) String() string {
-	data, err := json.MarshalIndent(q, "", "  ")
+	data, err := json.MarshalIndent(q, "", "\t")
 	if err != nil {
 		return err.Error()
 	}
