@@ -23,8 +23,8 @@ const (
 
 type Predicate struct {
 	Field string `json:"field,omitempty" yaml:"field"`
-	Op    string `json:"op,omitempty" yaml:"op"`
-	Value any    `json:"value,omitempty" yaml:"value"`
+	Op    string `json:"op" yaml:"op"`
+	Value any    `json:"value" yaml:"value"`
 }
 
 func (p *Predicate) FuncName() string {
